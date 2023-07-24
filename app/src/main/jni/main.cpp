@@ -1,5 +1,5 @@
 #include <jni.h>
-#include "com_noweaj_android_pupildetection_core_opencv_OpencvNative.h"
+#include "com_android_pupildetection_core_opencv_OpencvNative.h"
 
 #include <opencv2/opencv.hpp>
 
