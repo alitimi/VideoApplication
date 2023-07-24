@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/PupilDetection/app/src/main/res/drawable/button_background.xml" value="0.24177631578947367" />
+        <entry key="..\:/PupilDetection/app/src/main/res/drawable/inset_background_grey.xml" value="0.22135416666666666" />
+        <entry key="..\:/PupilDetection/app/src/main/res/layout/activity_camera.xml" value="0.36666666666666664" />
+        <entry key="..\:/PupilDetection/app/src/main/res/layout/activity_examination.xml" value="0.23157894736842105" />
+        <entry key="..\:/PupilDetection/app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="..\:/PupilDetection/app/src/main/res/layout/activity_questions.xml" value="0.25" />
+        <entry key="..\:/PupilDetection/app/src/main/res/layout/activity_web.xml" value="0.22269736842105264" />
+        <entry key="..\:/PupilDetection/app/src/main/res/layout/filter_info.xml" value="0.23157894736842105" />
+        <entry key="..\:/Users/Ali/AndroidStudioProjects/HCIApplication1/app/src/main/res/layout/activity_main.xml" value="0.22418478260869565" />
+        <entry key="..\:/Users/Ali/AndroidStudioProjects/HCIApplication1/app/src/main/res/layout/activity_main2.xml" value="0.22780797101449277" />
+        <entry key="..\:/Users/Ali/AndroidStudioProjects/HCIApplication1/app/src/main/res/layout/activity_questions.xml" value="0.22780797101449277" />
+        <entry key="..\:/Users/Ali/AndroidStudioProjects/HCIApplication1/app/src/main/res/layout/filter_info.xml" value="0.22780797101449277" />
+      </map>
+    </option>
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

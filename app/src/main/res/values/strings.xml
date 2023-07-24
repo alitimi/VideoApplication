@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">PupilDetection</string>
+
+    <string name="msg_face_not_detected">Face not detected</string>
+    <string name="msg_eyes_detected">Eyes detected</string>
+    <string name="msg_eyes_not_detected">Eyes not detected</string>
+    <string name="msg_eyes_not_trackable">Eyes not trackable</string>
+    <string name="msg_look_left">Looking Left</string>
+    <string name="msg_look_right">Looking Right</string>
+    <string name="msg_look_center">Looking Center</string>
+
+
+    <string name="tv_settings_scaling">SCALING</string>
+    <string name="tv_settings_brightness">BRIGHTNESS</string>
+    <string name="tv_settings_contrast">CONTRAST</string>
+    <string name="tv_settings_edge">EDGE</string>
+    <string name="tv_settings_gamma">GAMMA</string>
+
+    <string name="b_settings_capture">CAPTURE</string>
+    <string name="b_settings_save">SAVE</string>
+    <string name="b_settings_reset">RESET</string>
+    <string name="b_settings_exit">EXIT</string>
+
+    <integer name="scaling_max">11</integer>
+    <integer name="brightness_max">51</integer>
+    <integer name="contrast_max">16</integer>
+    <integer name="edge_max">151</integer>
+    <integer name="gamma_max">16</integer>
+</resources>
