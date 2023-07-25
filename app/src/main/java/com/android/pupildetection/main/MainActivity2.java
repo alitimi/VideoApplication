@@ -37,6 +37,8 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
     }
 
     int number;
+    String previousState;
+    private Matrix originalMatrix = new Matrix();
     private CameraBridgeViewBase camera;
     private TextView tv_instruction;
     private TextView tv_instruction2;
@@ -58,7 +60,7 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         setContentView(R.layout.activity_main);
         Bundle b = getIntent().getExtras();
         number = b.getInt("num");
-
+        previousState = "Center";
         mPresenter = new MainPresenter(this);
 
         camera = findViewById(R.id.jcv_camera);
@@ -123,6 +125,10 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
             mediaPlayer.setOnPreparedListener(mediaPlayer -> {
                 // Start playing the video
                 mediaPlayer.start();
+
+                // Initializing the original matrix and applying it
+                originalMatrix.set(video.getTransform(null));
+                applyZoom(originalMatrix);
             });
             mediaPlayer.setOnCompletionListener(mediaPlayer -> {
                 // Video playback has finished
@@ -147,6 +153,10 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         // Calculate the scale factor for zooming in
         float scaleFactor = 1.2f; // Increase this value to zoom in more
 
+        if (originalMatrix.isIdentity()) {
+            originalMatrix.set(matrix);
+        }
+
         // Translate the matrix to the right by half the width of the view
         matrix.setTranslate(video.getWidth() / 1.2f, 0);
 
@@ -164,6 +174,10 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
 
         // Calculate the scale factor for zooming in
         float scaleFactor = 1.2f; // Increase this value to zoom in more
+
+        if (originalMatrix.isIdentity()) {
+            originalMatrix.set(matrix);
+        }
 
         // Translate the matrix to the left by half the width of the view
         matrix.setTranslate(-video.getWidth() / 1.2f, 0);
@@ -263,14 +277,25 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         runOnUiThread(() -> {
             tv_instruction2.setText(message2 + left + "/" + right + "/" + center + "/l:" + maxLeft + "/r:" + maxRight + "/c:" + maxCenter);
             if (maxLeft) {
-                applyZoom(getLeftZoomMatrix());
+                if (previousState.equals("Right")) {
+                    applyZoom(originalMatrix);
+                    previousState = "Center";
+                } else if (previousState.equals("Center")){
+                    applyZoom(getLeftZoomMatrix());
+                    previousState = "Left";
+                }
             }
             if (maxRight) {
-                applyZoom(getRightZoomMatrix());
+                if (previousState.equals("Left")) {
+                    applyZoom(originalMatrix);
+                    previousState = "Center";
+                } else if (previousState.equals("Center")){
+                    applyZoom(getRightZoomMatrix());
+                    previousState = "Right";
+                }
             }
 
             if (maxCenter) {
-
             }
         });
 
