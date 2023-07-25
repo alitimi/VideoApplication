@@ -96,15 +96,15 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
 
         //Location of Media File
         if (number == 1) {
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening1);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
         } else if (number == 2){
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening2);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
         } else if (number == 3){
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening3);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
         } else if (number == 4){
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening4);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
         } else if (number == 5){
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening5);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
         }
 
     }
