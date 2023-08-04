@@ -227,16 +227,8 @@ public class MainActivity extends BaseActivity implements MainContract.View {
         runOnUiThread(() -> tv_instruction.setText(message));
     }
 
-    /**
-     * @param status       -1 : not detected
-     *                     n : # of eyes detected
-     * @param messageResId
-     */
     @Override
-    public void updateCurrentStatus2(int status, int messageResId, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
-        // update current status text field
-
-
+    public void updateCurrentStatus2(int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
         String message2 = this.getString(messageResId);
         runOnUiThread(() -> {
             tv_instruction2.setText(message2 + left + "/" + right + "/" + center + "/l:" + maxLeft + "/r:" + maxRight + "/c:" + maxCenter);
@@ -304,8 +296,87 @@ public class MainActivity extends BaseActivity implements MainContract.View {
             }
 //            tv_instruction2.setVisibility(View.VISIBLE);
         });
-
     }
+
+//    /**
+//     * @param status       -1 : not detected
+//     *                     n : # of eyes detected
+//     * @param messageResId
+//     */
+//    @Override
+//    public void updateCurrentStatus2(int status, int messageResId, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
+//        // update current status text field
+//
+//
+//        String message2 = this.getString(messageResId);
+//        runOnUiThread(() -> {
+//            tv_instruction2.setText(message2 + left + "/" + right + "/" + center + "/l:" + maxLeft + "/r:" + maxRight + "/c:" + maxCenter);
+//            if (maxLeft) {
+//                int time = videoViewLeft.getCurrentPosition();
+////                time = Math.max(Math.max(videoViewRight.getCurrentPosition(), videoView.getCurrentPosition()), videoViewLeft.getCurrentPosition());
+//                videoView.stopPlayback();
+//                videoView.setVideoURI(uri2);
+//                videoView.start();
+//                videoView.seekTo(time);
+////                videoViewRight.stopPlayback();
+////                videoView.setVisibility(View.GONE);
+////                videoViewRight.setVisibility(View.GONE);
+////                videoViewLeft.setVisibility(View.VISIBLE);
+////                if (time != videoViewLeft.getCurrentPosition()) {
+////                    videoViewLeft.seekTo(time + 1000);
+////                }
+////                else {
+////                    videoViewRight.seekTo(time);
+////                }
+////                videoViewLeft.start();
+//            }
+//            if (maxRight) {
+//                int time = videoViewRight.getCurrentPosition();;
+////                time = Math.max(Math.max(videoViewLeft.getCurrentPosition(), videoView.getCurrentPosition()), videoViewRight.getCurrentPosition());
+//                videoView.stopPlayback();
+//                videoView.setVideoURI(uri3);
+//                videoView.start();
+//                videoView.seekTo(time);
+////                videoViewLeft.stopPlayback();
+////                videoView.setVisibility(View.GONE);
+////                videoViewLeft.setVisibility(View.GONE);
+////                videoViewRight.setVisibility(View.VISIBLE);
+////                if (time == videoViewRight.getCurrentPosition()) {
+////                    videoViewRight.seekTo(time + 1000);
+////                }
+////                else {
+////                    videoViewRight.seekTo(time);
+////                }
+////                videoViewRight.start();
+//
+//
+//            }
+//
+//            if (maxCenter) {
+//                int time = videoViewCenter.getCurrentPosition();
+////                time = Math.max(Math.max(videoViewLeft.getCurrentPosition(), videoViewRight.getCurrentPosition()), videoView.getCurrentPosition());
+//                videoView.stopPlayback();
+//                videoView.setVideoURI(uri1);
+//                videoView.start();
+//                videoView.seekTo(time);
+////                videoViewLeft.stopPlayback();
+////                videoViewRight.stopPlayback();
+////                videoViewLeft.setVisibility(View.GONE);
+////                videoViewRight.setVisibility(View.GONE);
+////                videoView.setVisibility(View.VISIBLE);
+////                if (time != videoView.getCurrentPosition()) {
+////                    videoView.seekTo(time + 1000);
+////                }
+////                else {
+////                    videoViewRight.seekTo(time);
+////                }
+////                videoView.start();
+//
+//            }
+////            tv_instruction2.setVisibility(View.VISIBLE);
+//        });
+//
+//    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

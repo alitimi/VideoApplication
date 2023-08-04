@@ -32,7 +32,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_android_pupildetection_core_opencv_Openc
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
- * Class:     com_noweaj_android_pupildetection_core_opencv_OpencvNative
+ * Class:     com_android_pupildetection_core_opencv_OpencvNative
  * Method:    DetectEyes
  * Signature: (JJJ)V
  */
@@ -40,7 +40,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_android_pupildetection_core_opencv_Openc
   (JNIEnv *, jobject, jlong, jlong, jobjectArray);
 
 /*
- * Class:     com_noweaj_android_pupildetection_core_opencv_OpencvNative
+ * Class:     com_android_pupildetection_core_opencv_OpencvNative
  * Method:    DetectPupil
  * Signature: (JJJJ)V
  */

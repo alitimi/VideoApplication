@@ -112,44 +112,43 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
         boolean maxRight = false;
         int eyesCnt = 0;
         int[][] detectedEyes = OpencvApi.detectEyes(matInput, detectedFace);
-        if(detectedEyes != null){
-            for(int i=0; i<detectedEyes.length; i++){
-                if(detectedEyes[i] != null) {
-                    Log.d(TAG, "pupil loc: " + detectedEyes[i][0] + " " + detectedEyes[i][1]);
-                    horizontalRatio = (detectedEyes[i][0] + detectedEyes[i][1]) / 2;
-                    Log.d(TAG, "H " + horizontalRatio + " ");
-                    if (horizontalRatio >= 440) {
-                        Log.d(TAG, "Left");
-                        left += 1;
-
-                    }
-                    if (horizontalRatio <= 380) {
-                        Log.d(TAG, "Right");
-                        right += 1;
-                    }
-                    if (horizontalRatio > 380 && horizontalRatio < 440) {
-                        Log.d(TAG, "Center");
-                        center += 1;
-                    }
-                    isEyesDetected = true;
-                    eyesCnt++;
+        if(detectedEyes != null && detectedEyes.length != 0){
+            if(detectedEyes[0] != null) {
+                Log.d(TAG, "pupil loc: " + detectedEyes[0][0] + " " + detectedEyes[0][1]);
+                horizontalRatio = detectedEyes[0][0];
+                Log.d(TAG, "H " + horizontalRatio + " ");
+                float eyeCenter = (detectedEyes[0][2] + detectedEyes[0][3]) / 2;
+                if (detectedEyes[0][3] - horizontalRatio >= horizontalRatio - detectedEyes[0][2] + 2) {
+                    Log.d(TAG, "Right");
+                    right += 1;
                 }
+                if (detectedEyes[0][3] - horizontalRatio <= horizontalRatio - detectedEyes[0][2] + 20) {
+                    Log.d(TAG, "Left");
+                    left += 1;
+                }
+                if (Math.abs((detectedEyes[0][3] - horizontalRatio) - (horizontalRatio - detectedEyes[0][2])) < 25) {
+                    Log.d(TAG, "Center");
+                    center += 1;
+                }
+                isEyesDetected = true;
+                eyesCnt++;
             }
+
         }
 
-        if(isEyesDetected && left > 20 || center > 20 || right > 20){
+        if(isEyesDetected && left > 25 || center > 35 || right > 25){
             if (Math.max(Math.max(left, right), center) == left) {
                 maxLeft = true;
-                mView.updateCurrentStatus2(eyesCnt ,R.string.msg_look_left, maxLeft, maxRight, maxCenter, left, right, center);
+                mView.updateCurrentStatus2(eyesCnt ,R.string.msg_look_left, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);
             } else if (Math.max(Math.max(left, right), center) == right){
                 maxRight = true;
-                mView.updateCurrentStatus2(eyesCnt , R.string.msg_look_right, maxLeft, maxRight, maxCenter, left, right, center);
+                mView.updateCurrentStatus2(eyesCnt , R.string.msg_look_right, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);
             }
             else if(Math.max(Math.max(left, right), center) == center) {
                 maxCenter = true;
-                mView.updateCurrentStatus2(eyesCnt, R.string.msg_look_center, maxLeft, maxRight, maxCenter, left, right, center);
+                mView.updateCurrentStatus2(eyesCnt, R.string.msg_look_center, horizontalRatio,maxLeft, maxRight, maxCenter, left, right, center);
             } else {
-                mView.updateCurrentStatus2(eyesCnt, R.string.msg_eyes_not_trackable, maxLeft, maxRight, maxCenter, left, right, center);
+                mView.updateCurrentStatus2(eyesCnt, R.string.msg_eyes_not_trackable, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);
             }
             left = 0;
             right = 0;

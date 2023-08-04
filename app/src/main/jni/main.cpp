@@ -240,13 +240,17 @@ extern "C"{
                         __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ", "exception");
                         return NULL; // cannot use the pupilInfo object. skip current detection.
                     }
-                    pupilInfo = env->NewIntArray(2);
+                    pupilInfo = env->NewIntArray(4);
 
                     if(pupilInfo != NULL){
-                        jint *buf = new jint[2];
+                        jint *buf = new jint[4];
                         buf[0] = pupil.x;
                         buf[1] = pupil.y;
-                        env->SetIntArrayRegion(pupilInfo, 0, 2, buf);
+                        buf[2] = valid_eyes_corrected.x; // x start point of the eye
+                        buf[3] = valid_eyes_corrected.x + valid_eyes_corrected.width; // x end point of the eye
+
+
+                        env->SetIntArrayRegion(pupilInfo, 0, 4, buf);
                         env->SetObjectArrayElement(pupilsArray, i, pupilInfo);
                         free(buf);
 
