@@ -31,18 +31,13 @@ import java.util.ArrayList;
 import static android.Manifest.permission.CAMERA;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
-/**
- * activity 실행 시
- * 1. 퍼미션 확인
- * 2. 카메라 제어
- */
 public abstract class BaseActivity extends AppCompatActivity {
 
     private static final String TAG = BaseActivity.class.getSimpleName();
 
     private static final int PERMISSION_REQUEST_CODE = 100;
 
-    // BaseActivity를 상속받은 클래스에서 정의해야 하는 메소드
+    // BaseActivity
     protected abstract void initView();
     protected abstract void onCameraPermissionGranted();
     protected abstract void enableView();
@@ -102,21 +97,20 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     private void requestRequiredPermissions(){
-        // 허용되지 않은 권한 확인
+
         ArrayList<String> notGrantedList = new ArrayList<>();
 
         if(checkSelfPermission(CAMERA) != PackageManager.PERMISSION_GRANTED)
-            notGrantedList.add(CAMERA); // 허용되지 않음: CAMERA
+            notGrantedList.add(CAMERA);
 
         if(checkSelfPermission(WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            notGrantedList.add(WRITE_EXTERNAL_STORAGE); // 허용되지 않음: WRITE_EXTERNAL_STORAGE
+            notGrantedList.add(WRITE_EXTERNAL_STORAGE);
 
         if(!notGrantedList.isEmpty()) {
             requestPermissions(notGrantedList.toArray(new String[0]), PERMISSION_REQUEST_CODE);
         } else {
-            // 모든 권한이 허용되어 있다면 requestRequiredPermissions 메소드로 들어오지 않음. 예기치 않은 오류.
             Toast.makeText(this, "Permission error. Please re-install app.", Toast.LENGTH_SHORT).show();
-            System.exit(0); // 강제종료
+            System.exit(0);
         }
     }
 
@@ -131,14 +125,14 @@ public abstract class BaseActivity extends AppCompatActivity {
         if(requestCode == PERMISSION_REQUEST_CODE){
             boolean permFlag = true;
             StringBuilder sb = new StringBuilder();
-            // 허용되지 않은 권한을 표시하기 위해 문자열로 만듬
+
             for(int i=0; i<grantResults.length; i++){
                 if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
                     sb.append(permissions[i]+"\n");
-                    permFlag = false; // 모든 권한이 허용되지 않음
+                    permFlag = false;
                 }
             }
-            if(permFlag) { // 모든 권한 허용됨
+            if(permFlag) {
                 onAllPermissionsGranted();
             } else {
                 showDialogForPermission("PupilDetection requires following permission:\n"+sb.toString());
@@ -271,5 +265,5 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     }
 
-    public abstract void updateCurrentStatus2(int status, int messageResId, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center);
+    public abstract void updateCurrentStatus2(int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center);
 }

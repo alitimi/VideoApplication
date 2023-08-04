@@ -98,15 +98,15 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
 
         //Location of Media File
         if (number == 1) {
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening1);
         } else if (number == 2){
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening1);
         } else if (number == 3){
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening1);
         } else if (number == 4){
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening1);
         } else if (number == 5){
-            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.video);
+            uri1 = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.videolistening1);
         }
 
     }
@@ -151,17 +151,17 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         Matrix matrix = new Matrix();
 
         // Calculate the scale factor for zooming in
-        float scaleFactor = 1.2f; // Increase this value to zoom in more
+        float scaleFactor = 1.4f; // Increase this value to zoom in more
 
         if (originalMatrix.isIdentity()) {
             originalMatrix.set(matrix);
         }
 
         // Translate the matrix to the right by half the width of the view
-        matrix.setTranslate(video.getWidth() / 1.2f, 0);
+        matrix.setTranslate(video.getWidth() / 1.4f, 0);
 
         // Scale the matrix by the scaleFactor
-        matrix.postScale(scaleFactor, scaleFactor, 0, 0);
+        matrix.postScale(scaleFactor, scaleFactor, video.getWidth()/2, video.getHeight()/2);
 
         // Translate the matrix back to its original position
         matrix.postTranslate(-video.getWidth() / 1.2f, 0);
@@ -173,17 +173,17 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         Matrix matrix = new Matrix();
 
         // Calculate the scale factor for zooming in
-        float scaleFactor = 1.2f; // Increase this value to zoom in more
+        float scaleFactor = 1.4f; // Increase this value to zoom in more
 
         if (originalMatrix.isIdentity()) {
             originalMatrix.set(matrix);
         }
 
         // Translate the matrix to the left by half the width of the view
-        matrix.setTranslate(-video.getWidth() / 1.2f, 0);
+        matrix.setTranslate(-video.getWidth() / 1.4f, 0);
 
         // Scale the matrix by the scaleFactor
-        matrix.postScale(scaleFactor, scaleFactor, 0, 0);
+        matrix.postScale(scaleFactor, scaleFactor, video.getWidth()/2, video.getHeight()/2);
 
         // Translate the matrix back to its original position
         matrix.postTranslate(video.getWidth() / 1.2f, 0);
@@ -269,13 +269,12 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
      * @param messageResId
      */
     @Override
-    public void updateCurrentStatus2(int status, int messageResId, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
+    public void updateCurrentStatus2(int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
         // update current status text field
-
 
         String message2 = this.getString(messageResId);
         runOnUiThread(() -> {
-            tv_instruction2.setText(message2 + left + "/" + right + "/" + center + "/l:" + maxLeft + "/r:" + maxRight + "/c:" + maxCenter);
+            tv_instruction2.setText(message2 + position + left + "/" + right + "/" + center + "/l:" + maxLeft + "/r:" + maxRight + "/c:" + maxCenter);
             if (maxLeft) {
                 if (previousState.equals("Right")) {
                     applyZoom(originalMatrix);
@@ -296,6 +295,8 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
             }
 
             if (maxCenter) {
+                applyZoom(originalMatrix);
+                previousState = "Center";
             }
         });
 

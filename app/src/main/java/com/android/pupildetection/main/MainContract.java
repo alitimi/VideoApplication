@@ -11,7 +11,7 @@ public interface MainContract {
     interface View extends BaseView<Presenter> {
         void startSettingsActivity();
         void updateCurrentStatus(int status, int messageResId);
-        void updateCurrentStatus2(int status, int messageResId, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center);
+        void updateCurrentStatus2(int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center);
     }
     interface Presenter extends BasePresenter {
         void observeButton(Button button, int flag);
