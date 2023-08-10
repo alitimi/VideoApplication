@@ -7,6 +7,8 @@
 #include <algorithm>
 
 using namespace cv;
+
+
 using namespace std;
 
 extern "C"{
@@ -213,58 +215,102 @@ extern "C"{
             // resize pupilsArray object with the size of valid_eyes
             pupilsArray = env->NewObjectArray(valid_eyes.size(), pupilsArrayClass, NULL);
 
-            for(int j=0; j<valid_eyes.size(); j++){
-                Point eye_center(face_x+valid_eyes[j].x+valid_eyes[j].width/2, face_y+valid_eyes[j].y+valid_eyes[j].height/2);
+            if (valid_eyes.size() == 2) {
+                for (int j = 0; j < valid_eyes.size(); j++) {
+                    Point left_eye_center(face_x + valid_eyes[0].x + valid_eyes[0].width / 2,
+                                     face_y + valid_eyes[0].y + valid_eyes[0].height / 2);
+                    Point right_eye_center(face_x + valid_eyes[1].x + valid_eyes[1].width / 2,
+                                     face_y + valid_eyes[1].y + valid_eyes[1].height / 2);
 
-                if(eye_center.y < face_center.y){ // eyes cannot position at the below of face center
-                    __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ", "The valid_eyes[%d] is located above face center.", j);
-                    Rect valid_eyes_corrected(face_x+valid_eyes[j].x, face_y+valid_eyes[j].y, valid_eyes[j].width, valid_eyes[j].height);
+                    if (left_eye_center.y <
+                        face_center.y && right_eye_center.y < face_center.y) { // eyes cannot position at the below of face center
+                        __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ",
+                                            "The valid_eyes[%d] is located above face center.", j);
+                        Rect valid_left_eyes_corrected(face_x + valid_eyes[0].x,
+                                                  face_y + valid_eyes[0].y, valid_eyes[0].width,
+                                                  valid_eyes[0].height);
+                        Rect valid_right_eyes_corrected(face_x + valid_eyes[1].x,
+                                                       face_y + valid_eyes[1].y, valid_eyes[1].width,
+                                                       valid_eyes[1].height);
 
-                    // remove eyebrow area
-                    Rect valid_eyes_without_eyebrows(valid_eyes_corrected.x, valid_eyes_corrected.y+valid_eyes_corrected.height/3, valid_eyes_corrected.width, valid_eyes_corrected.height/3*2);
-                    rectangle(img_result, valid_eyes_without_eyebrows, Scalar(0, 255, 0), 10, 8, 0);
+                        // remove eyebrow area
+                        Rect valid_left_eyes_without_eyebrows(valid_left_eyes_corrected.x,
+                                                              valid_left_eyes_corrected.y +
+                                                                      valid_left_eyes_corrected.height / 3,
+                                                              valid_left_eyes_corrected.width,
+                                                              valid_left_eyes_corrected.height / 3 * 2);
+                        rectangle(img_result, valid_left_eyes_corrected, Scalar(0, 255, 0), 10, 8,
+                                  0);
 
-                    // get minMaxLoc
-                    Mat eyeMat = img_gray(valid_eyes_without_eyebrows);
-                    double maxVal, minVal;
-                    Point minLoc, maxLoc;
-                    minMaxLoc(eyeMat, &minVal, &maxVal, &minLoc, &maxLoc);
-                    __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ", "minMaxLoc processed");
+                        Rect valid_right_eyes_without_eyebrows(valid_right_eyes_corrected.x,
+                                                               valid_right_eyes_corrected.y +
+                                                                       valid_right_eyes_corrected.height / 3,
+                                                               valid_right_eyes_corrected.width,
+                                                               valid_right_eyes_corrected.height / 3 * 2);
+                        rectangle(img_result, valid_right_eyes_corrected, Scalar(0, 255, 0), 10, 8,
+                                  0);
 
-                    Point pupil(minLoc.x+valid_eyes_corrected.x, minLoc.y+valid_eyes_without_eyebrows.y);
+                        // get minMaxLoc
+                        Mat leftEyeMat = img_gray(valid_left_eyes_without_eyebrows);
+                        Mat rightEyeMat = img_gray(valid_right_eyes_without_eyebrows);
+                        double leftMaxVal, leftMinVal;
+                        Point leftMinLoc, leftMaxLoc;
+                        double rightMaxVal, rightMinVal;
+                        Point rightMinLoc, rightMaxLoc;
+                        minMaxLoc(leftEyeMat, &leftMinVal, &leftMaxVal, &leftMinLoc, &leftMaxLoc);
+                        minMaxLoc(rightEyeMat, &rightMinVal, &rightMaxVal, &rightMinLoc, &rightMaxLoc);
+                        __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ",
+                                            "minMaxLoc processed");
 
-                    // put pupil info into return object
-                    jintArray pupilInfo = NULL;
-                    __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ", "env->ExceptionCheck()");
-                    if(env->ExceptionCheck()){ // checks Exception has occured
-                        __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ", "exception");
-                        return NULL; // cannot use the pupilInfo object. skip current detection.
-                    }
-                    pupilInfo = env->NewIntArray(4);
+                        Point leftPupil(leftMinLoc.x + valid_left_eyes_corrected.x,
+                                    leftMinLoc.y + valid_left_eyes_without_eyebrows.y);
 
-                    if(pupilInfo != NULL){
-                        jint *buf = new jint[4];
-                        buf[0] = pupil.x;
-                        buf[1] = pupil.y;
-                        buf[2] = valid_eyes_corrected.x; // x start point of the eye
-                        buf[3] = valid_eyes_corrected.x + valid_eyes_corrected.width; // x end point of the eye
+                        Point rightPupil(rightMinLoc.x + valid_right_eyes_corrected.x,
+                                        rightMinLoc.y + valid_right_eyes_without_eyebrows.y);
 
+                        // put pupil info into return object
+                        jintArray pupilInfo = NULL;
+                        __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ",
+                                            "env->ExceptionCheck()");
+                        if (env->ExceptionCheck()) { // checks Exception has occured
+                            __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ", "exception");
+                            return NULL; // cannot use the pupilInfo object. skip current detection.
+                        }
+                        pupilInfo = env->NewIntArray(8);
 
-                        env->SetIntArrayRegion(pupilInfo, 0, 4, buf);
-                        env->SetObjectArrayElement(pupilsArray, i, pupilInfo);
-                        free(buf);
+                        if (pupilInfo != NULL) {
+                            jint *buf = new jint[4];
+                            buf[0] = leftPupil.x;
+                            buf[1] = leftPupil.y;
+                            buf[2] = valid_left_eyes_corrected.x; // x start point of the eye
+                            buf[3] = valid_left_eyes_corrected.x +
+                                     valid_left_eyes_corrected.width; // x end point of the eye
+                            buf[4] = rightPupil.x;
+                            buf[5] = rightPupil.y;
+                            buf[6] = valid_right_eyes_corrected.x; // x start point of the eye
+                            buf[7] = valid_right_eyes_corrected.x +
+                                     valid_right_eyes_corrected.width; // x end point of the eye
+                            env->SetIntArrayRegion(pupilInfo, 0, 8, buf);
+                            env->SetObjectArrayElement(pupilsArray, i, pupilInfo);
+                            free(buf);
 
-                        circle(img_result, pupil, 10, Scalar(255, 0, 0), 4, 8, 0);
-                    } else {
-                        // failed to make new int array 'pupilInfo'
+                            circle(img_result, leftPupil, 10, Scalar(255, 0, 0), 4, 8, 0);
+
+                            circle(img_result, rightPupil, 10, Scalar(255, 0, 0), 4, 8, 0);
+                        } else {
+                            // failed to make new int array 'pupilInfo'
+                        }
                     }
                 }
+
             }
+
         }
 
         __android_log_print(ANDROID_LOG_DEBUG, "native-lib :: ", "===== DetectEyes Ends");
         return pupilsArray;
     }
+
 
     JNIEXPORT void JNICALL Java_com_android_pupildetection_core_opencv_OpencvNative_DetectPupil
     (JNIEnv *env, jobject instance, jlong cascade_face, jlong cascade_eye, jlong matAddrInput, jlong matAddrResult){
