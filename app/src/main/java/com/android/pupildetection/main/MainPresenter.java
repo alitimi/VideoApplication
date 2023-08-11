@@ -159,28 +159,28 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
                 float eyeCenter = (detectedEyes[0][2] + detectedEyes[0][3]) / 2;
                 if (averageLeft != null && averageRight != null) {
                     if (horizontalRatio > 500) { // Right eye
-                        if (horizontalRatio > averageRight + 5) {
+                        if (horizontalRatio >= averageRight - 5) {
                             Log.d(TAG, "Left");
                             left += 1;
                         }
-                        if (horizontalRatio <= averageRight - 10) {
+                        else if (horizontalRatio <= averageRight - 10) {
                             Log.d(TAG, "Right");
                             right += 1;
                         }
-                        if (horizontalRatio >= averageRight && horizontalRatio < averageRight + 5) {
+                        else {
                             Log.d(TAG, "Center");
                             center += 1;
                         }
                     } else { // Left eye
-                        if (horizontalRatio > averageLeft + 5) {
+                        if (horizontalRatio >= averageLeft - 5) {
                             Log.d(TAG, "Left");
                             left += 1;
                         }
-                        if (horizontalRatio <= averageLeft - 10) {
+                        else if (horizontalRatio <= averageLeft - 10) {
                             Log.d(TAG, "Right");
                             right += 1;
                         }
-                        if (horizontalRatio > averageLeft && horizontalRatio < averageLeft + 5) {
+                        else  {
                             Log.d(TAG, "Center");
                             center += 1;
                         }
