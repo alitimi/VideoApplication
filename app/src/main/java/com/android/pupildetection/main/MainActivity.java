@@ -215,6 +215,11 @@ public class MainActivity extends BaseActivity implements MainContract.View {
         startActivityForResult(settingsIntent, SETTINGS_ACTIVITY_REQUEST_CODE);
     }
 
+    @Override
+    public void updateCenterPosition(double center, double center2) {
+
+    }
+
     /**
      * @param status       -1 : not detected
      *                     n : # of eyes detected

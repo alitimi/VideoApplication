@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="300dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/vdVw"
+        app:layout_constraintBottom_toTopOf="@+id/lookAtCamera"
         app:layout_constraintVertical_weight=".4"
         android:layout_margin="4dp"/>
     
@@ -24,6 +24,29 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/jcv_camera"
+        app:layout_constraintBottom_toTopOf="@+id/videosContainer"
+        android:layout_margin="4dp"
+        tools:ignore="MissingConstraints" />
+
+    <com.android.pupildetection.core.ui.RedPointView
+        android:id="@+id/redPoint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/lookAtCamera"
+        android:layout_width="fill_parent"
+        android:layout_height="200dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:paddingTop="50dp"
+        android:visibility="visible"
+        android:text="Please Look At The Red Point for a Few Seconds."
         app:layout_constraintTop_toBottomOf="@+id/jcv_camera"
         app:layout_constraintBottom_toTopOf="@+id/videosContainer"
         android:layout_margin="4dp"
@@ -34,7 +57,7 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_margin="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/vdVw"
+        app:layout_constraintTop_toBottomOf="@+id/lookAtCamera"
         android:orientation="horizontal">
 
         <VideoView
@@ -45,7 +68,7 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintRight_toRightOf="@+id/videosContainer"
             app:layout_constraintLeft_toLeftOf="@+id/vdVwCenter"
             android:layout_margin="4dp"
@@ -59,7 +82,7 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintRight_toRightOf="@+id/vdVwLeft"
             app:layout_constraintLeft_toLeftOf="@+id/vdVwRight"
             android:layout_margin="4dp"
@@ -73,7 +96,7 @@
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
-            android:visibility="visible"
+            android:visibility="gone"
             app:layout_constraintRight_toRightOf="@+id/vdVwCenter"
             app:layout_constraintLeft_toLeftOf="@+id/videosContainer"
             android:layout_margin="4dp"

@@ -2,6 +2,7 @@ package com.android.pupildetection.main;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
@@ -12,10 +13,12 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.View;
 import android.widget.TextView;
 
 import com.android.pupildetection.R;
 import com.android.pupildetection.core.ui.BaseActivity;
+import com.android.pupildetection.core.ui.RedPointView;
 import com.android.pupildetection.data.CascadeData;
 import com.android.pupildetection.settings.SettingsActivity;
 import org.opencv.android.CameraBridgeViewBase;
@@ -36,6 +39,8 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         System.loadLibrary("native-lib");
     }
 
+    Double leftPosition;
+    Double rightPosition;
     int number;
     String previousState;
     private Matrix originalMatrix = new Matrix();
@@ -43,7 +48,9 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
     private TextView tv_instruction;
     private TextView tv_instruction2;
     private MediaPlayer mediaPlayer;
+    private RedPointView redPointView;
     TextureView video;
+    TextView lookAtCamera;
     Uri uri1;
     Uri uri2;
     Uri uri3;
@@ -57,6 +64,7 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
 
     @Override
     protected void initView() {
+
         setContentView(R.layout.activity_main);
         Bundle b = getIntent().getExtras();
         number = b.getInt("num");
@@ -72,6 +80,8 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         tv_instruction = findViewById(R.id.tv_instruction);
         tv_instruction2 = findViewById(R.id.tv_instruction2);
         video = findViewById(R.id.vdVw);
+        lookAtCamera = findViewById(R.id.lookAtCamera);
+        redPointView = findViewById(R.id.redPoint);
 
         video.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
@@ -114,37 +124,39 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
     private void setupMediaPlayer() {
         mediaPlayer = new MediaPlayer();
 
+
+                // Set the data source of the video
         try {
-            // Set the data source of the video
             mediaPlayer.setDataSource(this, uri1);
-
-            // Set the SurfaceTexture as the output surface for the MediaPlayer
-            mediaPlayer.setSurface(new Surface(video.getSurfaceTexture()));
-
-            // Prepare the MediaPlayer asynchronously
-            mediaPlayer.setOnPreparedListener(mediaPlayer -> {
-                // Start playing the video
-                mediaPlayer.start();
-
-                // Initializing the original matrix and applying it
-                originalMatrix.set(video.getTransform(null));
-                applyZoom(originalMatrix);
-            });
-            mediaPlayer.setOnCompletionListener(mediaPlayer -> {
-                // Video playback has finished
-                // Perform your desired action, such as changing the intent
-                Intent newIntent = new Intent(MainActivity2.this, ExaminationActivity.class);
-                newIntent.putExtra("num", number);
-                startActivity(newIntent);
-
-                // Release the MediaPlayer
-                mediaPlayer.release();
-                mediaPlayer = null;
-            });
-            mediaPlayer.prepareAsync();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+
+        // Set the SurfaceTexture as the output surface for the MediaPlayer
+                mediaPlayer.setSurface(new Surface(video.getSurfaceTexture()));
+
+                // Prepare the MediaPlayer asynchronously
+                mediaPlayer.setOnPreparedListener(mediaPlayer -> {
+                    // Start playing the video
+                    mediaPlayer.start();
+
+                    // Initializing the original matrix and applying it
+                    originalMatrix.set(video.getTransform(null));
+                    applyZoom(originalMatrix);
+                });
+                mediaPlayer.setOnCompletionListener(mediaPlayer -> {
+                    // Video playback has finished
+                    // Perform your desired action, such as changing the intent
+                    Intent newIntent = new Intent(MainActivity2.this, ExaminationActivity.class);
+                    newIntent.putExtra("num", number);
+                    startActivity(newIntent);
+
+                    // Release the MediaPlayer
+                    mediaPlayer.release();
+                    mediaPlayer = null;
+                });
+                mediaPlayer.prepareAsync();
+
     }
 
     private Matrix getLeftZoomMatrix() {
@@ -249,6 +261,40 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
     public void startSettingsActivity() {
         Intent settingsIntent = new Intent(this, SettingsActivity.class);
         startActivityForResult(settingsIntent, SETTINGS_ACTIVITY_REQUEST_CODE);
+    }
+
+    @Override
+    public void updateCenterPosition(double leftCenter, double rightCenter) {
+        leftPosition = leftCenter;
+        rightPosition = rightCenter;
+        if (leftCenter != 0 && rightCenter != 0){
+            runOnUiThread(() -> {
+                video.setVisibility(View.VISIBLE);
+                lookAtCamera.setVisibility(View.INVISIBLE);
+                redPointView.setVisibility(View.INVISIBLE);
+                video.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+                    @Override
+                    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+                        setupMediaPlayer();
+                    }
+
+                    @Override
+                    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
+                        // Handle size changes if needed
+                    }
+
+                    @Override
+                    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+                        return false;
+                    }
+
+                    @Override
+                    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+                        // Handle texture updates if needed
+                    }
+                });
+            });
+        }
     }
 
     /**
