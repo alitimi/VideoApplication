@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.android.pupildetection.R;
 import com.android.pupildetection.core.ui.BaseActivity;
+import com.android.pupildetection.core.ui.RedPointView;
 import com.android.pupildetection.data.CascadeData;
 import com.android.pupildetection.settings.SettingsActivity;
 import org.opencv.android.CameraBridgeViewBase;
@@ -47,6 +48,7 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
     private TextView tv_instruction;
     private TextView tv_instruction2;
     private MediaPlayer mediaPlayer;
+    private RedPointView redPointView;
     TextureView video;
     TextView lookAtCamera;
     Uri uri1;
@@ -79,6 +81,7 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         tv_instruction2 = findViewById(R.id.tv_instruction2);
         video = findViewById(R.id.vdVw);
         lookAtCamera = findViewById(R.id.lookAtCamera);
+        redPointView = findViewById(R.id.redPoint);
 
         video.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
@@ -268,6 +271,7 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
             runOnUiThread(() -> {
                 video.setVisibility(View.VISIBLE);
                 lookAtCamera.setVisibility(View.INVISIBLE);
+                redPointView.setVisibility(View.INVISIBLE);
                 video.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
                     @Override
                     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {

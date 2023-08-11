@@ -279,7 +279,7 @@ extern "C"{
                         pupilInfo = env->NewIntArray(8);
 
                         if (pupilInfo != NULL) {
-                            jint *buf = new jint[4];
+                            jint *buf = new jint[8];
                             buf[0] = leftPupil.x;
                             buf[1] = leftPupil.y;
                             buf[2] = valid_left_eyes_corrected.x; // x start point of the eye

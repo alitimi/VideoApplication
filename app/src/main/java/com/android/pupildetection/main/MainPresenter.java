@@ -139,7 +139,7 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
                 }
             }
         }
-        if (centerPositions.size() > 10) {
+        if (centerPositions.size() > 150) {
             for (int j = 0; j < centerPositions.size(); j++){
                 if (centerPositions.get(j) > 500){
                     EyeRighttcenterPositions.add(centerPositions.get(j));
@@ -158,29 +158,29 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
                 Log.d(TAG, "H " + horizontalRatio + " ");
                 float eyeCenter = (detectedEyes[0][2] + detectedEyes[0][3]) / 2;
                 if (averageLeft != null && averageRight != null) {
-                    if (horizontalRatio > 500) {
+                    if (horizontalRatio > 500) { // Right eye
                         if (horizontalRatio > averageRight + 5) {
                             Log.d(TAG, "Left");
                             left += 1;
                         }
-                        if (horizontalRatio < averageRight - 10) {
+                        if (horizontalRatio <= averageRight - 10) {
                             Log.d(TAG, "Right");
                             right += 1;
                         }
-                        if (averageRight == horizontalRatio) {
+                        if (horizontalRatio >= averageRight && horizontalRatio < averageRight + 5) {
                             Log.d(TAG, "Center");
                             center += 1;
                         }
-                    } else {
+                    } else { // Left eye
                         if (horizontalRatio > averageLeft + 5) {
                             Log.d(TAG, "Left");
                             left += 1;
                         }
-                        if (horizontalRatio < averageLeft - 10) {
+                        if (horizontalRatio <= averageLeft - 10) {
                             Log.d(TAG, "Right");
                             right += 1;
                         }
-                        if (averageLeft == horizontalRatio) {
+                        if (horizontalRatio > averageLeft && horizontalRatio < averageLeft + 5) {
                             Log.d(TAG, "Center");
                             center += 1;
                         }

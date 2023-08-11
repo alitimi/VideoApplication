@@ -30,6 +30,11 @@
         android:layout_margin="4dp"
         tools:ignore="MissingConstraints" />
 
+    <com.android.pupildetection.core.ui.RedPointView
+        android:id="@+id/redPoint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <TextView
         android:id="@+id/lookAtCamera"
         android:layout_width="fill_parent"
@@ -39,8 +44,9 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentBottom="true"
         android:gravity="center"
+        android:paddingTop="50dp"
         android:visibility="visible"
-        android:text="Please Look At Your Front Camera for a Few Seconds."
+        android:text="Please Look At The Red Point for a Few Seconds."
         app:layout_constraintTop_toBottomOf="@+id/jcv_camera"
         app:layout_constraintBottom_toTopOf="@+id/videosContainer"
         android:layout_margin="4dp"
