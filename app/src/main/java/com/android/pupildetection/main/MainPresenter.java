@@ -40,6 +40,12 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
     private static ArrayList<Double> centerPositions = new ArrayList<>();
     private static ArrayList<Double> EyeLeftcenterPositions = new ArrayList<>();
     private static ArrayList<Double> EyeRighttcenterPositions = new ArrayList<>();
+    private static ArrayList<Double> leftPositions = new ArrayList<>();
+    private static ArrayList<Double> EyeLeftleftPositions = new ArrayList<>();
+    private static ArrayList<Double> EyeRightleftPositions = new ArrayList<>();
+    private static ArrayList<Double> rightPositions = new ArrayList<>();
+    private static ArrayList<Double> EyeLeftrightPositions = new ArrayList<>();
+    private static ArrayList<Double> EyeRightrightPositions = new ArrayList<>();
 
     public MainPresenter(MainContract.View mView){
         this.mView = mView;
