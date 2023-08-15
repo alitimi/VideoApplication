@@ -3,7 +3,7 @@ include $(CLEAR_VARS)
 
 #opencv library
 #OPENCVROOT := A:\Development\src\AndroidWorkspace\PupilDetection\opencv420
-OPENCVROOT := C:\Users\Ali\AndroidStudioProjects\HCIApplication1\opencv42
+OPENCVROOT := C:\Users\Ali\AndroidStudioProjects\VideoApplication1\opencv420
 OPENCV_CAMERA_MODULES := on
 OPENCV_INSTALL_MODULES := on
 OPENCV_LIB_TYPE := SHARED

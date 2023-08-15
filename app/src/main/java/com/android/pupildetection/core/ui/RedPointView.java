@@ -37,7 +37,7 @@ public class RedPointView extends View {
         super.onDraw(canvas);
         int centerX = getWidth() / 2;
         int centerY = getHeight() / 2;
-        int radius = 50;  // or any desired size
+        int radius = 25;  // or any desired size
         canvas.drawCircle(centerX, centerY, radius, paint);
     }
 }

@@ -33,13 +33,25 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
     int left = 0;
     int right = 0;
     int center = 0;
-
+    Boolean centerPassed = false;
+    Boolean leftPassed = false;
+    Boolean rightPassed = false;
     Double averageLeft;
     Double averageRight;
+    Double eyeLeftAverageLeft;
+    Double eyeRightAverageLeft;
+    Double eyeLeftAverageRight;
+    Double eyeRightAverageRight;
     float centerPosition;
     private static ArrayList<Double> centerPositions = new ArrayList<>();
     private static ArrayList<Double> EyeLeftcenterPositions = new ArrayList<>();
-    private static ArrayList<Double> EyeRighttcenterPositions = new ArrayList<>();
+    private static ArrayList<Double> EyeRightcenterPositions = new ArrayList<>();
+    private static ArrayList<Double> leftPositions = new ArrayList<>();
+    private static ArrayList<Double> EyeLeftleftPositions = new ArrayList<>();
+    private static ArrayList<Double> EyeRightleftPositions = new ArrayList<>();
+    private static ArrayList<Double> rightPositions = new ArrayList<>();
+    private static ArrayList<Double> EyeLeftrightPositions = new ArrayList<>();
+    private static ArrayList<Double> EyeRightrightPositions = new ArrayList<>();
 
     public MainPresenter(MainContract.View mView){
         this.mView = mView;
@@ -108,21 +120,20 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
 
-
         Mat matInput = inputFrame.rgba();
-        Mat matModified = Imgproc.getRotationMatrix2D(new Point(matInput.cols()/2, matInput.rows()/2), 90, 1);
+        Mat matModified = Imgproc.getRotationMatrix2D(new Point(matInput.cols() / 2, matInput.rows() / 2), 90, 1);
         Imgproc.warpAffine(matInput, matInput, matModified, matInput.size());
 
         int[][] detectedFace = OpencvApi.detectFrontalFace(matInput);
-        if(detectedFace == null || detectedFace.length < 1) {
+        if (detectedFace == null || detectedFace.length < 1) {
             // detected no face
-            mView.updateCurrentStatus(-1,R.string.msg_face_not_detected);
-            Imgproc.ellipse(matInput, new Point(matInput.cols()/2, matInput.rows()/2), new Size(matInput.cols()/3, matInput.rows()/1.5), 0, 0, 360, new Scalar(255, 0, 0), 10, 8, 0);
+            mView.updateCurrentStatus(-1, R.string.msg_face_not_detected);
+            Imgproc.ellipse(matInput, new Point(matInput.cols() / 2, matInput.rows() / 2), new Size(matInput.cols() / 3, matInput.rows() / 1.5), 0, 0, 360, new Scalar(255, 0, 0), 10, 8, 0);
             return matInput;
         }
-        Log.d(TAG, "face detected!: "+detectedFace.length);
-        for(int i=0; i<detectedFace.length; i++){
-            Log.d(TAG, "face"+i+":"+detectedFace[i][0]+"/"+detectedFace[i][1]+"/"+detectedFace[i][2]+"/"+detectedFace[i][3]);
+        Log.d(TAG, "face detected!: " + detectedFace.length);
+        for (int i = 0; i < detectedFace.length; i++) {
+            Log.d(TAG, "face" + i + ":" + detectedFace[i][0] + "/" + detectedFace[i][1] + "/" + detectedFace[i][2] + "/" + detectedFace[i][3]);
         }
 
         boolean isEyesDetected = false;
@@ -131,64 +142,116 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
         boolean maxRight = false;
         int eyesCnt = 0;
         int[][] detectedEyes = OpencvApi.detectEyes(matInput, detectedFace);
-        if (detectedEyes != null && detectedEyes.length != 0) {
-            if (detectedEyes[0] != null) {
-                if (detectedEyes[0].length > 4) {
-                    centerPositions.add((double) detectedEyes[0][0]);
-                    centerPositions.add((double) detectedEyes[0][4]);
+
+        if (rightPositions.size() < 151) {
+
+            if (detectedEyes != null && detectedEyes.length != 0) {
+                if (detectedEyes[0] != null) {
+                    if (detectedEyes[0].length > 4) {
+                        centerPositions.add((double) detectedEyes[0][0]);
+                        centerPositions.add((double) detectedEyes[0][4]);
+                    }
                 }
             }
-        }
-        if (centerPositions.size() > 150) {
-            for (int j = 0; j < centerPositions.size(); j++){
-                if (centerPositions.get(j) > 500){
-                    EyeRighttcenterPositions.add(centerPositions.get(j));
-                } else {
-                    EyeLeftcenterPositions.add(centerPositions.get(j));
+            if (centerPositions.size() > 150) {
+                if (!centerPassed) {
+                    for (int j = 0; j < centerPositions.size(); j++) {
+                        if (centerPositions.get(j) > 500) {
+                            EyeRightcenterPositions.add(centerPositions.get(j));
+                        } else {
+                            EyeLeftcenterPositions.add(centerPositions.get(j));
+                        }
+                    }
+
+                    averageLeft = calculateAverage(EyeLeftcenterPositions);
+                    averageRight = calculateAverage(EyeRightcenterPositions);
+                    mView.updateCenterPosition(averageLeft, averageRight, 1);
+                    centerPassed = true;
                 }
-            }
-            averageLeft = calculateAverage(EyeLeftcenterPositions);
-            averageRight = calculateAverage(EyeRighttcenterPositions);
-            mView.updateCenterPosition(averageLeft, averageRight);
-        }
-        if (detectedEyes != null && detectedEyes.length != 0) {
-            if (detectedEyes[0] != null) {
-                Log.d(TAG, "pupil loc: " + detectedEyes[0][0] + " " + detectedEyes[0][1]);
-                horizontalRatio = detectedEyes[0][0];
-                Log.d(TAG, "H " + horizontalRatio + " ");
-                float eyeCenter = (detectedEyes[0][2] + detectedEyes[0][3]) / 2;
-                if (averageLeft != null && averageRight != null) {
-                    if (horizontalRatio > 500) { // Right eye
-                        if (horizontalRatio >= averageRight - 5) {
-                            Log.d(TAG, "Left");
-                            left += 1;
-                        }
-                        else if (horizontalRatio <= averageRight - 10) {
-                            Log.d(TAG, "Right");
-                            right += 1;
-                        }
-                        else {
-                            Log.d(TAG, "Center");
-                            center += 1;
-                        }
-                    } else { // Left eye
-                        if (horizontalRatio >= averageLeft - 5) {
-                            Log.d(TAG, "Left");
-                            left += 1;
-                        }
-                        else if (horizontalRatio <= averageLeft - 10) {
-                            Log.d(TAG, "Right");
-                            right += 1;
-                        }
-                        else  {
-                            Log.d(TAG, "Center");
-                            center += 1;
+
+                if (detectedEyes != null && detectedEyes.length != 0) {
+                    if (detectedEyes[0] != null) {
+                        if (detectedEyes[0].length > 4) {
+                            leftPositions.add((double) detectedEyes[0][0]);
+                            leftPositions.add((double) detectedEyes[0][4]);
                         }
                     }
                 }
+                if (leftPositions.size() > 150) {
+                    if (!leftPassed) {
+                        for (int j = 0; j < leftPositions.size(); j++) {
+                            if (leftPositions.get(j) > 500) {
+                                EyeRightleftPositions.add(leftPositions.get(j));
+                            } else {
+                                EyeLeftleftPositions.add(leftPositions.get(j));
+                            }
+                        }
+                        eyeLeftAverageLeft = calculateAverage(EyeLeftleftPositions);
+                        eyeRightAverageLeft = calculateAverage(EyeRightleftPositions);
+                        mView.updateCenterPosition(eyeLeftAverageLeft, eyeRightAverageLeft, 2);
+                        leftPassed = true;
+                    }
 
-                isEyesDetected = true;
-                eyesCnt++;
+                    if (detectedEyes != null && detectedEyes.length != 0) {
+                        if (detectedEyes[0] != null) {
+                            if (detectedEyes[0].length > 4) {
+                                rightPositions.add((double) detectedEyes[0][0]);
+                                rightPositions.add((double) detectedEyes[0][4]);
+                            }
+                        }
+                    }
+                    if (rightPositions.size() >= 150) {
+                        for (int j = 0; j < rightPositions.size(); j++) {
+                            if (rightPositions.get(j) > 500) {
+                                EyeRightrightPositions.add(rightPositions.get(j));
+                            } else {
+                                EyeLeftrightPositions.add(rightPositions.get(j));
+                            }
+                        }
+                        eyeLeftAverageRight = calculateAverage(EyeLeftrightPositions);
+                        eyeRightAverageRight = calculateAverage(EyeRightrightPositions);
+                        mView.updateCenterPosition(eyeLeftAverageRight, eyeRightAverageRight, 3);
+                    }
+                }
+            }
+        }
+
+        if (centerPositions.size() > 150 && leftPositions.size() > 150 && rightPositions.size() > 150) {
+            if (detectedEyes != null && detectedEyes.length != 0) {
+                if (detectedEyes[0] != null) {
+                    Log.d(TAG, "pupil loc: " + detectedEyes[0][0] + " " + detectedEyes[0][1]);
+                    horizontalRatio = detectedEyes[0][0];
+                    Log.d(TAG, "H " + horizontalRatio + " ");
+                    float eyeCenter = (detectedEyes[0][2] + detectedEyes[0][3]) / 2;
+                    if (averageLeft != null && averageRight != null) {
+                        if (horizontalRatio > 500) { // Right eye
+                            if (horizontalRatio < eyeRightAverageRight + 2) {
+                                Log.d(TAG, "Right");
+                                right += 1;
+                            } else if (eyeRightAverageLeft - 14 < horizontalRatio) {
+                                Log.d(TAG, "Left");
+                                left += 1;
+                            } else {
+                                Log.d(TAG, "Center");
+                                center += 1;
+                            }
+                        } else { // Left eye
+                            if (horizontalRatio < eyeLeftAverageRight + 2) {
+                                Log.d(TAG, "Right");
+                                right += 1;
+                            } else if (eyeLeftAverageLeft - 14 < horizontalRatio) {
+                                Log.d(TAG, "Left");
+                                left += 1;
+                            } else {
+                                Log.d(TAG, "Center");
+                                center += 1;
+                            }
+                        }
+                    }
+
+                    isEyesDetected = true;
+                    eyesCnt++;
+                }
             }
         }
 
@@ -214,7 +277,7 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
 //            mView.updateCurrentStatus(0, R.string.msg_eyes_not_detected);
 //        }
 
-        if(isEyesDetected && left > 20 || center > 20 || right > 20){
+        if(isEyesDetected && (left > 10 || center > 20 || right > 10)){
             if (Math.max(Math.max(left, right), center) == left) {
                 maxLeft = true;
                 mView.updateCurrentStatus2(eyesCnt ,R.string.msg_look_left, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);

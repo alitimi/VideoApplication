@@ -216,7 +216,7 @@ public class MainActivity extends BaseActivity implements MainContract.View {
     }
 
     @Override
-    public void updateCenterPosition(double center, double center2) {
+    public void updateCenterPosition(double center, double center2, int num) {
 
     }
 

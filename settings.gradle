@@ -1,6 +1,4 @@
-include ':opencv420'
+
 include ':app'
 rootProject.name = "PupilDetection"
-include ':opencv'
-include ':opencv420'
-include ':opencv42'
+include ':OpenCV420'
