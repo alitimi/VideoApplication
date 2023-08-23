@@ -15,6 +15,12 @@ extern "C" {
 JNIEXPORT void JNICALL Java_com_android_pupildetection_core_opencv_OpencvNative_ConvertRGBtoGray
   (JNIEnv *, jobject, jlong, jlong);
 
+
+JNIEXPORT void JNICALL Java_com_android_pupildetection_main_MainPresenter_initVideoWriter(JNIEnv* env, jobject, jstring outputPath);
+
+JNIEXPORT void JNICALL Java_com_android_pupildetection_main_MainPresenter_writeFrame(JNIEnv* env, jobject, jlong matAddr);
+
+
 /*
  * Class:     com_android_pupildetection_core_opencv_OpencvNative
  * Method:    LoadCascade

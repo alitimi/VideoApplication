@@ -3,7 +3,9 @@ package com.android.pupildetection.main;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.Button;
 
@@ -13,12 +15,16 @@ import com.jakewharton.rxbinding3.view.RxView;
 import com.android.pupildetection.R;
 import com.android.pupildetection.core.opencv.OpencvApi;
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.Utils;
+import org.opencv.core.CvException;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.videoio.VideoWriter;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import io.reactivex.disposables.CompositeDisposable;
@@ -30,6 +36,7 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
 
     private MainContract.View mView;
 
+    private static ArrayList<Bitmap> bitmaps = new ArrayList<>();
     int left = 0;
     int right = 0;
     int center = 0;
@@ -42,7 +49,9 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
     Double eyeRightAverageLeft;
     Double eyeLeftAverageRight;
     Double eyeRightAverageRight;
+    Double positionAverage = 0.0;
     float centerPosition;
+    int frameNumber = 0;
     private static ArrayList<Double> centerPositions = new ArrayList<>();
     private static ArrayList<Double> EyeLeftcenterPositions = new ArrayList<>();
     private static ArrayList<Double> EyeRightcenterPositions = new ArrayList<>();
@@ -112,15 +121,35 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
 
     @Override
     public void onCameraViewStopped() {
+//        mView.saveVideo(bitmaps);
+    }
 
+    public native void initVideoWriter(String outputPath);
+    public native void writeFrame(long matAddr);
+
+    private static Bitmap convertMatToBitMap(Mat input){
+        Bitmap bmp = null;
+        Mat rgb = new Mat();
+        Imgproc.cvtColor(input, rgb, Imgproc.COLOR_BGR2RGB);
+
+        try {
+            bmp = Bitmap.createBitmap(rgb.cols(), rgb.rows(), Bitmap.Config.ARGB_8888);
+            Utils.matToBitmap(rgb, bmp);
+            bitmaps.add(bmp);
+        }
+        catch (CvException e){
+            Log.d("Exception",e.getMessage());
+        }
+        return bmp;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-
-
+        frameNumber += 1;
         Mat matInput = inputFrame.rgba();
+//        initVideoWriter(outputPath);
+//        writeFrame(matInput.dataAddr());
         Mat matModified = Imgproc.getRotationMatrix2D(new Point(matInput.cols() / 2, matInput.rows() / 2), 90, 1);
         Imgproc.warpAffine(matInput, matInput, matModified, matInput.size());
 
@@ -142,6 +171,7 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
         boolean maxRight = false;
         int eyesCnt = 0;
         int[][] detectedEyes = OpencvApi.detectEyes(matInput, detectedFace);
+        Imgproc.ellipse(matInput, new Point(matInput.cols()/2, matInput.rows()/2), new Size(matInput.cols()/3, matInput.rows()/1.5), 0, 0, 360, new Scalar(0, 255, 255), 10, 8, 0);
 
         if (rightPositions.size() < 151) {
 
@@ -155,7 +185,7 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
             }
             if (centerPositions.size() > 150) {
                 if (!centerPassed) {
-                    for (int j = 0; j < centerPositions.size(); j++) {
+                    for (int j = 5; j < centerPositions.size(); j++) {
                         if (centerPositions.get(j) > 500) {
                             EyeRightcenterPositions.add(centerPositions.get(j));
                         } else {
@@ -179,7 +209,7 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
                 }
                 if (leftPositions.size() > 150) {
                     if (!leftPassed) {
-                        for (int j = 0; j < leftPositions.size(); j++) {
+                        for (int j = 5; j < leftPositions.size(); j++) {
                             if (leftPositions.get(j) > 500) {
                                 EyeRightleftPositions.add(leftPositions.get(j));
                             } else {
@@ -201,7 +231,7 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
                         }
                     }
                     if (rightPositions.size() >= 150) {
-                        for (int j = 0; j < rightPositions.size(); j++) {
+                        for (int j = 5; j < rightPositions.size(); j++) {
                             if (rightPositions.get(j) > 500) {
                                 EyeRightrightPositions.add(rightPositions.get(j));
                             } else {
@@ -222,13 +252,17 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
                     Log.d(TAG, "pupil loc: " + detectedEyes[0][0] + " " + detectedEyes[0][1]);
                     horizontalRatio = detectedEyes[0][0];
                     Log.d(TAG, "H " + horizontalRatio + " ");
-                    float eyeCenter = (detectedEyes[0][2] + detectedEyes[0][3]) / 2;
+                    if (positionAverage != 0) {
+                        positionAverage = 0.25 * positionAverage + 0.75 * horizontalRatio;
+                    } else {
+                        positionAverage = (double) horizontalRatio;
+                    }
                     if (averageLeft != null && averageRight != null) {
-                        if (horizontalRatio > 500) { // Right eye
-                            if (horizontalRatio < eyeRightAverageRight + 2) {
+                        if (positionAverage > 500) { // Right eye
+                            if (positionAverage < eyeRightAverageRight + 1) {
                                 Log.d(TAG, "Right");
                                 right += 1;
-                            } else if (eyeRightAverageLeft - 14 < horizontalRatio) {
+                            } else if (eyeRightAverageLeft - 14 < positionAverage) {
                                 Log.d(TAG, "Left");
                                 left += 1;
                             } else {
@@ -236,10 +270,10 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
                                 center += 1;
                             }
                         } else { // Left eye
-                            if (horizontalRatio < eyeLeftAverageRight + 2) {
+                            if (positionAverage < eyeLeftAverageRight + 1) {
                                 Log.d(TAG, "Right");
                                 right += 1;
-                            } else if (eyeLeftAverageLeft - 14 < horizontalRatio) {
+                            } else if (eyeLeftAverageLeft - 14 < positionAverage) {
                                 Log.d(TAG, "Left");
                                 left += 1;
                             } else {
@@ -277,19 +311,19 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
 //            mView.updateCurrentStatus(0, R.string.msg_eyes_not_detected);
 //        }
 
-        if(isEyesDetected && (left > 10 || center > 20 || right > 10)){
+        if(isEyesDetected && (left > 9 || center > 15 || right > 9)){
             if (Math.max(Math.max(left, right), center) == left) {
                 maxLeft = true;
-                mView.updateCurrentStatus2(eyesCnt ,R.string.msg_look_left, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);
+                mView.updateCurrentStatus3(bitmaps, eyesCnt ,R.string.msg_look_left, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);
             } else if (Math.max(Math.max(left, right), center) == right){
                 maxRight = true;
-                mView.updateCurrentStatus2(eyesCnt , R.string.msg_look_right, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);
+                mView.updateCurrentStatus3(bitmaps,eyesCnt , R.string.msg_look_right, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);
             }
             else if(Math.max(Math.max(left, right), center) == center) {
                 maxCenter = true;
-                mView.updateCurrentStatus2(eyesCnt, R.string.msg_look_center, horizontalRatio,maxLeft, maxRight, maxCenter, left, right, center);
+                mView.updateCurrentStatus3(bitmaps, eyesCnt, R.string.msg_look_center, horizontalRatio,maxLeft, maxRight, maxCenter, left, right, center);
             } else {
-                mView.updateCurrentStatus2(eyesCnt, R.string.msg_eyes_not_trackable, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);
+                mView.updateCurrentStatus3(bitmaps, eyesCnt, R.string.msg_eyes_not_trackable, horizontalRatio, maxLeft, maxRight, maxCenter, left, right, center);
             }
             left = 0;
             right = 0;
@@ -307,6 +341,10 @@ public class MainPresenter implements MainContract.Presenter, CameraBridgeViewBa
 //        OpencvNative.DetectFrontalFace(CascadeData.cascade_frontalface, matInput.getNativeObjAddr(), matInput.getNativeObjAddr());
 //        OpencvNative.DetectPupil(CascadeData.cascade_frontalface, CascadeData.cascade_eyes, matInput.getNativeObjAddr(), matInput.getNativeObjAddr());
 //        OpencvNative.DetectEyes(CascadeData.cascade_frontalface, CascadeData.cascade_eyes, matInput.getNativeObjAddr(), matInput.getNativeObjAddr());
+
+        //        if (frameNumber % 2 == 0) {
+        convertMatToBitMap(matInput);
+//        }
         return matInput;
     }
 

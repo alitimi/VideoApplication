@@ -1,5 +1,6 @@
 #include <jni.h>
 #include "com_android_pupildetection_core_opencv_OpencvNative.h"
+#include "opencv2/videoio/legacy/constants_c.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -79,7 +80,23 @@ extern "C"{
         cvtColor(*(Mat *)matAddrInput, *(Mat *)matAddrResult, COLOR_RGBA2GRAY);
     }
 
-    JNIEXPORT
+cv::VideoWriter writer;
+
+JNIEXPORT void JNICALL Java_com_android_pupildetection_main_MainPresenter_initVideoWriter(JNIEnv* env, jobject, jstring outputPath) {
+    const char *nativePath = env->GetStringUTFChars(outputPath, 0);
+    writer.open(nativePath, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(640, 480), true);
+    env->ReleaseStringUTFChars(outputPath, nativePath);
+}
+
+JNIEXPORT void JNICALL Java_com_android_pupildetection_main_MainPresenter_writeFrame(JNIEnv* env, jobject, jlong matAddr) {
+    cv::Mat& mat = *(cv::Mat*)matAddr;
+    if(writer.isOpened()) {
+        writer.write(mat);
+    }
+}
+
+
+JNIEXPORT
     jlong JNICALL Java_com_android_pupildetection_core_opencv_OpencvNative_LoadCascade
     (JNIEnv *env, jobject instance, jstring filePath){
         const char *filePathString = env->GetStringUTFChars(filePath, 0);

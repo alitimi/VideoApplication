@@ -2,6 +2,7 @@ package com.android.pupildetection.main;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -18,6 +19,9 @@ import com.android.pupildetection.core.ui.BaseActivity;
 import com.android.pupildetection.data.CascadeData;
 import com.android.pupildetection.settings.SettingsActivity;
 import org.opencv.android.CameraBridgeViewBase;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -62,7 +66,7 @@ public class MainActivity extends BaseActivity implements MainContract.View {
 
         camera = findViewById(R.id.jcv_camera);
         camera.setVisibility(SurfaceView.VISIBLE);
-        camera.setCvCameraViewListener(mPresenter.getCvCameraViewListener());
+//        camera.setCvCameraViewListener(mPresenter.getCvCameraViewListener());
         camera.setCameraIndex(1); // front 1, back 0
         camera.enableFpsMeter();
 
@@ -182,6 +186,11 @@ public class MainActivity extends BaseActivity implements MainContract.View {
     }
 
     @Override
+    public void updateCurrentStatus2(int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
+
+    }
+
+    @Override
     protected void enableView() {
         camera.enableView();
         Log.d("jaycho", "readCascade: " + CascadeData.readCascade);
@@ -220,6 +229,11 @@ public class MainActivity extends BaseActivity implements MainContract.View {
 
     }
 
+    @Override
+    public void saveVideo(ArrayList<Bitmap> bitmaps) {
+
+    }
+
     /**
      * @param status       -1 : not detected
      *                     n : # of eyes detected
@@ -233,7 +247,7 @@ public class MainActivity extends BaseActivity implements MainContract.View {
     }
 
     @Override
-    public void updateCurrentStatus2(int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
+    public void updateCurrentStatus3(ArrayList<Bitmap> bitmap, int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
         String message2 = this.getString(messageResId);
         runOnUiThread(() -> {
             tv_instruction2.setText(message2 + left + "/" + right + "/" + center + "/l:" + maxLeft + "/r:" + maxRight + "/c:" + maxCenter);

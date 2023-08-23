@@ -2,14 +2,24 @@ package com.android.pupildetection.main;
 
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
@@ -25,15 +35,28 @@ import com.android.pupildetection.core.ui.RedPointView;
 import com.android.pupildetection.data.CascadeData;
 import com.android.pupildetection.settings.SettingsActivity;
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.videoio.VideoWriter;
+import org.opencv.core.Size;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class MainActivity2 extends BaseActivity implements MainContract.View {
 
+    private static ArrayList<Bitmap> bitmaps;
+
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int SETTINGS_ACTIVITY_REQUEST_CODE = 200;
+
+    private static final String VIDEO_MIME_TYPE = "video/avc";
+    private static final int FRAME_RATE = 30;
+    private static final int IFRAME_INTERVAL = 5;
+    private static final int TIMEOUT_USEC = 10000; // 10ms
 
     private MainContract.Presenter mPresenter;
 
@@ -59,7 +82,7 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
     Uri uri1;
     Uri uri2;
     Uri uri3;
-
+    private static String user;
 //    private Button b_register, b_verify, b_delete, b_cancel, b_save, b_settings;
 
     @Override
@@ -73,8 +96,24 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         setContentView(R.layout.activity_main);
         Bundle b = getIntent().getExtras();
         number = b.getInt("num");
+        user = b.getString("user");
         previousState = "Center";
         mPresenter = new MainPresenter(this);
+
+//        File directory;
+//        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+//            directory = new File(Environment.getExternalStorageDirectory() + "/Recordings/");
+//        } else {
+//            directory = new File(Environment.getExternalStorageDirectory() + "/Recordings/");
+//        }
+//        if (!directory.exists() && !directory.mkdirs()) {
+//            // Handle error here; maybe the directory creation failed
+//        }
+//        File outputFile = new File(directory, "output.avi");
+//        outputPath = outputFile.getAbsolutePath();
+//        int fourcc = VideoWriter.fourcc('M', 'J', 'P', 'G'); // or use 'X','V','I','D' or others
+//        Size frameSize = new Size(720, 960);
+//        videoWriter = new VideoWriter(outputPath, fourcc, 1, frameSize, true);
 
         camera = findViewById(R.id.jcv_camera);
         camera.setVisibility(SurfaceView.VISIBLE);
@@ -128,11 +167,10 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
 
     }
 
+
     private void setupMediaPlayer() {
         mediaPlayer = new MediaPlayer();
-
-
-                // Set the data source of the video
+        // Set the data source of the video
         try {
             mediaPlayer.setDataSource(this, uri1);
         } catch (IOException e) {
@@ -140,29 +178,53 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         }
 
         // Set the SurfaceTexture as the output surface for the MediaPlayer
-                mediaPlayer.setSurface(new Surface(video.getSurfaceTexture()));
+        mediaPlayer.setSurface(new Surface(video.getSurfaceTexture()));
 
-                // Prepare the MediaPlayer asynchronously
-                mediaPlayer.setOnPreparedListener(mediaPlayer -> {
-                    // Start playing the video
-                    mediaPlayer.start();
+        // Prepare the MediaPlayer asynchronously
+        mediaPlayer.setOnPreparedListener(mediaPlayer -> {
+            // Start playing the video
+            mediaPlayer.start();
 
-                    // Initializing the original matrix and applying it
-                    originalMatrix.set(video.getTransform(null));
-                    applyZoom(originalMatrix);
-                });
-                mediaPlayer.setOnCompletionListener(mediaPlayer -> {
-                    // Video playback has finished
-                    // Perform your desired action, such as changing the intent
+            // Initializing the original matrix and applying it
+            originalMatrix.set(video.getTransform(null));
+            applyZoom(originalMatrix);
+        });
+        mediaPlayer.setOnCompletionListener(mediaPlayer -> {
+            runOnUiThread(() -> camera.setVisibility(View.INVISIBLE));
+
+            // Create and show the progress dialog
+            ProgressDialog progressDialog = new ProgressDialog(MainActivity2.this);
+            progressDialog.setMessage("Converting to video...");
+            progressDialog.setIndeterminate(true); // This means the progress bar will be animated without showing actual progress
+            progressDialog.setCancelable(false); // This means users cannot cancel the dialog by tapping outside
+            progressDialog.show();
+
+            new Thread(() -> {
+                // Convert bitmaps in the background
+                convertBitmapsToMP4(bitmaps);
+
+                // After the conversion is done, move to the next activity
+                runOnUiThread(() -> {
+                    progressDialog.dismiss(); // Dismiss the progress dialog
+
                     Intent newIntent = new Intent(MainActivity2.this, ExaminationActivity.class);
                     newIntent.putExtra("num", number);
                     startActivity(newIntent);
 
                     // Release the MediaPlayer
-                    mediaPlayer.release();
-                    mediaPlayer = null;
                 });
-                mediaPlayer.prepareAsync();
+            }).start();
+
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.reset();
+                mediaPlayer.release();
+                mediaPlayer = null;
+            }
+        });
+
+
+        mediaPlayer.prepareAsync();
 
     }
 
@@ -267,6 +329,11 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
     }
 
     @Override
+    public void updateCurrentStatus2(int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
+
+    }
+
+    @Override
     protected void enableView() {
         camera.enableView();
         Log.d("jaycho", "readCascade: " + CascadeData.readCascade);
@@ -351,6 +418,12 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
         }
     }
 
+    @Override
+    public void saveVideo(ArrayList<Bitmap> bitmap) {
+//        bitmaps = new ArrayList<>();
+//        bitmaps.addAll(bitmap);
+//        convertBitmapsToMP4(bitmaps);
+    }
 
 
     /**
@@ -371,16 +444,17 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
      * @param messageResId
      */
     @Override
-    public void updateCurrentStatus2(int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
+    public void updateCurrentStatus3(ArrayList<Bitmap> bitmap, int status, int messageResId, int position, boolean maxLeft, boolean maxRight, boolean maxCenter, int left, int right, int center) {
         // update current status text field
-
+        bitmaps = new ArrayList<>();
+        bitmaps.addAll(bitmap);
         String message2 = this.getString(messageResId);
         runOnUiThread(() -> {
             tv_instruction2.setText(message2 + position + left + "/" + right + "/" + center + "/l:" + maxLeft + "/r:" + maxRight + "/c:" + maxCenter);
             if (maxLeft) {
                 if (previousState.equals("Right")) {
-                    applyZoomWithAnimation(getRightZoomMatrix(), originalMatrix);
-                    previousState = "Center";
+                    applyZoomWithAnimation(getRightZoomMatrix(), getLeftZoomMatrix());
+                    previousState = "Left";
                 } else if (previousState.equals("Center")){
                     applyZoomWithAnimation(originalMatrix, getLeftZoomMatrix());
                     previousState = "Left";
@@ -388,16 +462,20 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
             }
             if (maxRight) {
                 if (previousState.equals("Left")) {
-                    applyZoomWithAnimation(getLeftZoomMatrix(), originalMatrix);
-                    previousState = "Center";
+                    applyZoomWithAnimation(getLeftZoomMatrix(), getRightZoomMatrix());
+                    previousState = "Right";
                 } else if (previousState.equals("Center")){
                     applyZoomWithAnimation(originalMatrix, getRightZoomMatrix());
                     previousState = "Right";
                 }
             }
             if (maxCenter) {
-                applyZoomWithAnimation(previousState.equals("Left") ? getLeftZoomMatrix() : getRightZoomMatrix(), originalMatrix);
-                previousState = "Center";
+                if (previousState.equals("Left") || previousState.equals("Right")) {
+                    applyZoomWithAnimation(previousState.equals("Left") ? getLeftZoomMatrix() : getRightZoomMatrix(), originalMatrix);
+                    previousState = "Center";
+                } else {
+                    //Do Nothing
+                }
             }
         });
 
@@ -414,5 +492,90 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
             }
         }
     }
+
+    public static void convertBitmapsToMP4(ArrayList<Bitmap> bitmaps1) {
+        MediaCodec codec = null;
+        MediaMuxer muxer = null;
+
+        try {
+            int videoWidth = bitmaps1.get(0).getWidth();
+            int videoHeight = bitmaps1.get(0).getHeight();
+            MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, videoWidth, videoHeight);
+            format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, 2000000);
+            format.setInteger(MediaFormat.KEY_FRAME_RATE, FRAME_RATE);
+            format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, IFRAME_INTERVAL);
+
+            codec = MediaCodec.createEncoderByType(VIDEO_MIME_TYPE);
+            codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            Surface inputSurface = codec.createInputSurface();
+            codec.start();
+
+            String OUTPUT_FILE = Environment.getExternalStorageDirectory() + "/" + user + ".mp4";
+            muxer = new MediaMuxer(OUTPUT_FILE, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+            int trackIndex = -1;
+            boolean muxerStarted = false;
+
+            for (int i = 0; i < bitmaps1.size(); i++) {
+                drawBitmapToSurface(inputSurface, bitmaps1.get(i), videoWidth, videoHeight);
+
+                MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+                int encoderStatus;
+                do {
+                    encoderStatus = codec.dequeueOutputBuffer(bufferInfo, TIMEOUT_USEC);
+                    if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                        // no output available yet
+                    } else if (encoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                        // should happen before receiving buffers
+                        if (muxerStarted) {
+                            throw new RuntimeException("format changed twice");
+                        }
+                        MediaFormat newFormat = codec.getOutputFormat();
+                        trackIndex = muxer.addTrack(newFormat);
+                        muxer.start();
+                        muxerStarted = true;
+                    } else if (encoderStatus < 0) {
+                        // unexpected status
+                    } else {
+                        ByteBuffer encodedData = codec.getOutputBuffer(encoderStatus);
+                        if (muxerStarted) {
+                            muxer.writeSampleData(trackIndex, encodedData, bufferInfo);
+                        }
+                        codec.releaseOutputBuffer(encoderStatus, false);
+                    }
+                } while (encoderStatus >= 0);
+            }
+
+            codec.signalEndOfInputStream(); // Inform codec of the end of stream.
+            // Rest of the cleanup and finalizing code...
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (muxer != null) {
+                try {
+                    muxer.stop();
+                    muxer.release();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (codec != null) {
+                codec.stop();
+                codec.release();
+            }
+        }
+    }
+
+    private static void drawBitmapToSurface(Surface surface, Bitmap bitmap, int width, int height) {
+        Canvas canvas = surface.lockCanvas(null);
+        try {
+            Rect rect = new Rect(0, 0, width, height);
+            canvas.drawBitmap(bitmap, null, rect, null);
+        } finally {
+            surface.unlockCanvasAndPost(canvas);
+        }
+    }
+
 }
 

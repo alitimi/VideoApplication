@@ -36,7 +36,7 @@ public class QuestionsActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_questions);
-
+        String user = getRandomString(5);
         next = findViewById(R.id.okbutton);
         back = findViewById(R.id.cancelbutton);
         idCounter = new AtomicLong();
@@ -50,7 +50,7 @@ public class QuestionsActivity extends AppCompatActivity {
         final Button accept = dialog.findViewById(R.id.button_ok);
         final Button cancel = dialog.findViewById(R.id.button_cancel);
         final TextView info = dialog.findViewById(R.id.info);
-        info.setText( "Dear user " + getRandomString(4) + " thank you for participating in this study.");
+        info.setText( "Dear user " + "\"" + user + "\"" + " thank you for participating in this study.");
         accept.setOnClickListener(view -> dialog.dismiss());
         cancel.setOnClickListener(view -> {
             finish();
@@ -186,6 +186,7 @@ public class QuestionsActivity extends AppCompatActivity {
             int answer = rn.nextInt(5) + 1;
             Intent intent = new Intent(QuestionsActivity.this, MainActivity2.class);
             intent.putExtra("num", answer);
+            intent.putExtra("user", user);
             startActivity(intent);
         });
     }
