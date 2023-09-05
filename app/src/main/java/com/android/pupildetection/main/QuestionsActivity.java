@@ -184,7 +184,7 @@ public class QuestionsActivity extends AppCompatActivity {
         next.setOnClickListener(view -> {
             Random rn = new Random();
             int answer = rn.nextInt(5) + 1;
-            Intent intent = new Intent(QuestionsActivity.this, MainActivity2.class);
+            Intent intent = new Intent(QuestionsActivity.this, PreparationActivity.class);
             intent.putExtra("num", answer);
             intent.putExtra("user", user);
             startActivity(intent);

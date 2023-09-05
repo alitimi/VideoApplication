@@ -34,6 +34,7 @@
         <activity android:name="com.android.pupildetection.camera.CameraActivity"/>
         <activity android:name="com.android.pupildetection.main.ExaminationActivity"/>
         <activity android:name="com.android.pupildetection.main.MainActivity2"/>
+        <activity android:name="com.android.pupildetection.main.PreparationActivity"/>
 
         <service
             android:name="com.android.pupildetection.service.ScreenRecordingService"

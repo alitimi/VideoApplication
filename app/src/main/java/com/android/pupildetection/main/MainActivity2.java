@@ -54,8 +54,8 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
     private static final int SETTINGS_ACTIVITY_REQUEST_CODE = 200;
 
     private static final String VIDEO_MIME_TYPE = "video/avc";
-    private static final int FRAME_RATE = 30;
-    private static final int IFRAME_INTERVAL = 5;
+    private static final int FRAME_RATE = 10;
+    private static final int IFRAME_INTERVAL = 1;
     private static final int TIMEOUT_USEC = 10000; // 10ms
 
     private MainContract.Presenter mPresenter;
@@ -190,36 +190,40 @@ public class MainActivity2 extends BaseActivity implements MainContract.View {
             applyZoom(originalMatrix);
         });
         mediaPlayer.setOnCompletionListener(mediaPlayer -> {
-            runOnUiThread(() -> camera.setVisibility(View.INVISIBLE));
+            try {
+                runOnUiThread(() -> camera.setVisibility(View.INVISIBLE));
 
-            // Create and show the progress dialog
-            ProgressDialog progressDialog = new ProgressDialog(MainActivity2.this);
-            progressDialog.setMessage("Converting to video...");
-            progressDialog.setIndeterminate(true); // This means the progress bar will be animated without showing actual progress
-            progressDialog.setCancelable(false); // This means users cannot cancel the dialog by tapping outside
-            progressDialog.show();
+                // Create and show the progress dialog
+                ProgressDialog progressDialog = new ProgressDialog(MainActivity2.this);
+                progressDialog.setMessage("Converting to video...");
+                progressDialog.setIndeterminate(true); // This means the progress bar will be animated without showing actual progress
+                progressDialog.setCancelable(false); // This means users cannot cancel the dialog by tapping outside
+                progressDialog.show();
 
-            new Thread(() -> {
-                // Convert bitmaps in the background
-                convertBitmapsToMP4(bitmaps);
+                new Thread(() -> {
+                    // Convert bitmaps in the background
+                    convertBitmapsToMP4(bitmaps);
 
-                // After the conversion is done, move to the next activity
-                runOnUiThread(() -> {
-                    progressDialog.dismiss(); // Dismiss the progress dialog
+                    // After the conversion is done, move to the next activity
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss(); // Dismiss the progress dialog
 
-                    Intent newIntent = new Intent(MainActivity2.this, ExaminationActivity.class);
-                    newIntent.putExtra("num", number);
-                    startActivity(newIntent);
+                        Intent newIntent = new Intent(MainActivity2.this, ExaminationActivity.class);
+                        newIntent.putExtra("num", number);
+                        startActivity(newIntent);
 
-                    // Release the MediaPlayer
-                });
-            }).start();
+                        // Release the MediaPlayer
+                    });
+                }).start();
 
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.reset();
-                mediaPlayer.release();
-                mediaPlayer = null;
+                if (mediaPlayer != null) {
+                    mediaPlayer.stop();
+                    mediaPlayer.reset();
+                    mediaPlayer.release();
+                    mediaPlayer = null;
+                }
+            } catch (Exception e){
+                e.printStackTrace();
             }
         });
 
